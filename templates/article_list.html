@@ -9,7 +9,7 @@
             <a href="{{ article.get_absolute_url }}">{{ article.title }}</a>
         </span> &middot;
         <span class="text-muted">by {{ article.author }} |
-            {{ article.date }}</span> 
+            {{ article.date }} | Views: {{ article.hit_count.hits }}</span> 
     </div>
     <div class="card-body">
         <p>{{ article.body }}</p>

@@ -1,10 +1,11 @@
 from django.db import models
 from django.conf import settings
 from django.urls import reverse
+from hitcount.models import HitCountMixin
 
 
 # Create your models here.
-class Article(models.Model):
+class Article(models.Model, HitCountMixin):
     title = models.CharField(max_length=255)
     body = models.TextField()
     date = models.DateTimeField(auto_now_add=True)

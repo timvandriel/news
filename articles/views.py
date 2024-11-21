@@ -2,16 +2,19 @@ from django.views.generic import ListView, DetailView, CreateView, FormView
 from django.views.generic.edit import UpdateView, DeleteView
 from django.urls import reverse_lazy, reverse
 from .models import Article
+from hitcount.views import HitCountDetailView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .forms import CommentForm
 from django.views import View
 from django.views.generic.detail import SingleObjectMixin
+from django.shortcuts import get_object_or_404
 
 
 # Create your views here.
 class ArticleListView(LoginRequiredMixin, ListView):
     model = Article
     template_name = "article_list.html"
+    context_object_name = "article_list"
 
 
 class CommentGet(DetailView):
@@ -45,14 +48,26 @@ class CommentPost(SingleObjectMixin, FormView):
         return reverse("article_detail", kwargs={"pk": article.pk})
 
 
-class ArticleDetailView(LoginRequiredMixin, View):
+class ArticleDetailView(LoginRequiredMixin, HitCountDetailView, View):
+    model = Article
+    template_name = "article_detail.html"
+    context_object_name = "article"
+    count_hit = True
+
     def get(self, request, *args, **kwargs):
-        view = CommentGet.as_view()
-        return view(request, *args, **kwargs)
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+        return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
-        view = CommentPost.as_view()
-        return view(request, *args, **kwargs)
+        self.object = self.get_object()
+        return CommentPost.as_view()(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["form"] = CommentForm()
+        context["hit_count"] = self.object.hit_count.hits
+        return context
 
 
 class ArticleUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
